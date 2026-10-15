@@ -69,7 +69,7 @@ flowchart TD
 ![ESLint](evidencias/01-eslint.png)
 ![Problems](evidencias/02-problems.png)
 
-**Explicación:** _(escríbela con tus palabras: qué comando ejecutaste, qué resultado salió y qué significa la regla exhaustive-deps)_
+**Explicación:** Ejecuté `npm run lint` y terminó sin errores ni advertencias; la pestaña Problems de VS Code tampoco muestra problemas. La regla `react-hooks/exhaustive-deps` revisa que todo lo que se usa dentro de `useEffect`, `useMemo` y `useCallback` esté en su arreglo de dependencias; si falta una, el efecto trabaja con datos viejos.
 
 ### 2. React DevTools Profiler: antes y después de la memoización
 
@@ -81,26 +81,28 @@ Después (`React.memo`, `useMemo`, `useCallback`): `TaskList (Memo)` y los `Task
 
 ![Después](evidencias/04-profiler-despues.png)
 
-![Profiler con debounce](evidencias/05-profiler-reloj.png)
+![Profiler: commit causado por el reloj](evidencias/05-profiler-reloj.png)
 
-**Explicación:** _(escríbela con tus palabras: cuántos commits hubo en cada grabación, qué componentes se re-renderizaron y cuáles dejaron de hacerlo, y por qué)_
+**Explicación:** En cada grabación hubo 6 commits; el primero lo provocó el cambio de tema. Antes de memoizar se re-renderizaban `Dashboard`, `TaskList` y los tres `TaskItem`. Después, `TaskList` y los `TaskItem` aparecen rayados porque `React.memo` los salta, y los handlers mantienen su referencia gracias a `useCallback`. El primer commit bajó de 3.7 ms a 2.8 ms. Los commits son los mismos, pero se re-renderizan menos componentes. No usé `useCallback` en botones nativos porque no están memoizados y sería overuse.
 
 ### 3. Cleanup de `useEffect`
 
 ![Cleanup](evidencias/06-cleanup-consola.png)
 
-**Explicación:** _(escríbela con tus palabras: qué pasó en la consola al ocultar el reloj, y por qué sin cleanup quedaría un intervalo huérfano. Menciona que en desarrollo React Strict Mode monta, desmonta y vuelve a montar)_
+**Explicación:** Al ocultar el reloj, la consola muestra "Clock: cleanup ejecutado, intervalo limpiado", y al mostrarlo de nuevo "Clock: intervalo iniciado". Sin el `clearInterval` quedaría un intervalo huérfano corriendo (memory leak). Los mensajes se repiten porque en desarrollo React Strict Mode monta, desmonta y vuelve a montar el componente.
 
 ### 4. Persistencia en localStorage
 
 ![Local Storage](evidencias/07-localstorage.png)
 
-**Explicación:** _(escríbela con tus palabras)_
+**Explicación:** El hook `useLocalStorage` guarda el tema con un `useEffect`, y `App` guarda las tareas con otro efecto. Se ve `tasks` con las 3 tareas y `theme` cambiando de "light" a "dark" (la clave `tema` es de otro proyecto en el mismo puerto). Al recargar, el estado se inicializa leyendo de localStorage, por eso se conservan.
 
 ### 5. Interfaz
 
 ![Tema claro](evidencias/08-tema-claro.png)
 ![Tema oscuro](evidencias/09-tema-oscuro.png)
+
+**Explicación:** El tema claro y el oscuro se aplican con una clase en el `<body>` que `ThemeContext` agrega y quita en un `useEffect` con cleanup, y la preferencia se conserva en localStorage.
 
 ## Correcciones al código base de la guía
 
