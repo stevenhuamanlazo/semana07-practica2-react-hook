@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
 import tasksReducer, { ACTIONS, initialState } from './hooks/useTasksReducer'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import TaskList from './components/TaskList'
@@ -28,12 +28,26 @@ const Dashboard = () => {
     localStorage.setItem('tasks', JSON.stringify(state.items))
   }, [state.items])
 
-  const handleAdd = (title) =>
-    dispatch({ type: ACTIONS.ADD, payload: { id: crypto.randomUUID(), title } })
-  const handleRemove = (id) => dispatch({ type: ACTIONS.REMOVE, payload: id })
-  const handleToggle = (id) => dispatch({ type: ACTIONS.TOGGLE, payload: id })
+  // dispatch es estable, por eso las dependencias están vacías.
+  // Handlers estables = React.memo en TaskForm/TaskList/TaskItem sí evita re-renders.
+  const handleAdd = useCallback(
+    (title) => dispatch({ type: ACTIONS.ADD, payload: { id: crypto.randomUUID(), title } }),
+    []
+  )
+  const handleRemove = useCallback(
+    (id) => dispatch({ type: ACTIONS.REMOVE, payload: id }),
+    []
+  )
+  const handleToggle = useCallback(
+    (id) => dispatch({ type: ACTIONS.TOGGLE, payload: id }),
+    []
+  )
 
-  const done = state.items.filter((t) => t.completed).length
+  // Solo se recalcula si cambian las tareas
+  const done = useMemo(
+    () => state.items.filter((t) => t.completed).length,
+    [state.items]
+  )
 
   return (
     <div className={`dashboard ${theme}`}>

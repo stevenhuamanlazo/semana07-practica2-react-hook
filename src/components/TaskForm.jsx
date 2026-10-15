@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-
+import { memo, useEffect, useRef, useState } from 'react'
 const TaskForm = ({ onAdd }) => {
   const inputRef = useRef(null)
   const [title, setTitle] = useState('') // UI local
@@ -31,4 +30,4 @@ const TaskForm = ({ onAdd }) => {
   )
 }
 
-export default TaskForm
+export default memo(TaskForm)

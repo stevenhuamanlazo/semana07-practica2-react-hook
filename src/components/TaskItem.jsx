@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 const TaskItem = ({ task, onRemove, onToggle }) => {
   console.log('render TaskItem', task.title)
   return (
@@ -13,4 +15,4 @@ const TaskItem = ({ task, onRemove, onToggle }) => {
   )
 }
 
-export default TaskItem
+export default memo(TaskItem)
