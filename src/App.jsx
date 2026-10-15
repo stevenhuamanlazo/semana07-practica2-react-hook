@@ -15,6 +15,9 @@ const init = (base) => {
   }
 }
 
+// Etiquetas visibles en español (los valores internos siguen en inglés)
+const FILTER_LABELS = { all: 'Todas', pending: 'Pendientes', completed: 'Completadas' }
+
 const Dashboard = () => {
   const [state, dispatch] = useReducer(tasksReducer, initialState, init)
   const { theme, toggleTheme } = useTheme()
@@ -34,19 +37,23 @@ const Dashboard = () => {
 
   return (
     <div className={`dashboard ${theme}`}>
-      <button onClick={toggleTheme}>Cambiar Tema ({theme})</button>
-      <h1>Gestor de Tareas</h1>
+      <header className="dashboard-header">
+        <h1>Gestor de Tareas</h1>
+        <button onClick={toggleTheme}>
+          {theme === 'light' ? '🌙 Modo oscuro' : '☀️ Modo claro'}
+        </button>
+      </header>
 
       <TaskForm onAdd={handleAdd} />
 
       <div className="controls">
-        {['all', 'pending', 'completed'].map((f) => (
+        {Object.entries(FILTER_LABELS).map(([value, label]) => (
           <button
-            key={f}
-            className={state.filter === f ? 'active' : ''}
-            onClick={() => dispatch({ type: ACTIONS.FILTER, payload: f })}
+            key={value}
+            className={state.filter === value ? 'active' : ''}
+            onClick={() => dispatch({ type: ACTIONS.FILTER, payload: value })}
           >
-            {f}
+            {label}
           </button>
         ))}
         <button
@@ -54,7 +61,7 @@ const Dashboard = () => {
             dispatch({ type: ACTIONS.SORT, payload: state.sort === 'asc' ? 'desc' : 'asc' })
           }
         >
-          Orden: {state.sort}
+          Orden: {state.sort === 'asc' ? 'A → Z' : 'Z → A'}
         </button>
         <button onClick={() => setShowStats((s) => !s)}>
           {showStats ? 'Ocultar' : 'Mostrar'} estadísticas
@@ -62,7 +69,15 @@ const Dashboard = () => {
       </div>
 
       {showStats && (
-        <p>Total: {state.items.length} | Completadas: {done}</p>
+        <p className="stats">
+          <span>Total: <strong>{state.items.length}</strong></span>
+          <span>Completadas: <strong>{done}</strong></span>
+          <span>Pendientes: <strong>{state.items.length - done}</strong></span>
+        </p>
+      )}
+
+      {state.items.length === 0 && (
+        <p className="empty">Aún no hay tareas. ¡Agrega la primera!</p>
       )}
 
       <TaskList
