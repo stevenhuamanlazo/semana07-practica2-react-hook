@@ -81,7 +81,7 @@ Después (`React.memo`, `useMemo`, `useCallback`): `TaskList (Memo)` y los `Task
 
 ![Después](evidencias/04-profiler-despues.png)
 
-![Profiler con debounce](evidencias/05-profiler-debounce.png)
+![Profiler con debounce](evidencias/05-profiler-reloj.png)
 
 **Explicación:** _(escríbela con tus palabras: cuántos commits hubo en cada grabación, qué componentes se re-renderizaron y cuáles dejaron de hacerlo, y por qué)_
 
