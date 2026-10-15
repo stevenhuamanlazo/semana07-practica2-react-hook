@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
 import tasksReducer, { ACTIONS, initialState } from './hooks/useTasksReducer'
+import { useDebounce } from './hooks/useDebounce'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import TaskList from './components/TaskList'
 import TaskForm from './components/TaskForm'
+import Clock from './components/Clock'
 import './App.css'
 
 // Estado inicial: lee las tareas guardadas en localStorage
@@ -21,33 +23,27 @@ const FILTER_LABELS = { all: 'Todas', pending: 'Pendientes', completed: 'Complet
 const Dashboard = () => {
   const [state, dispatch] = useReducer(tasksReducer, initialState, init)
   const { theme, toggleTheme } = useTheme()
-  const [showStats, setShowStats] = useState(false) // UI local
+
+  // UI local
+  const [showStats, setShowStats] = useState(false)
+  const [showClock, setShowClock] = useState(false)
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 300)
 
   // Persistir tareas
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(state.items))
   }, [state.items])
 
-  // dispatch es estable, por eso las dependencias están vacías.
-  // Handlers estables = React.memo en TaskForm/TaskList/TaskItem sí evita re-renders.
+  // dispatch es estable, por eso las dependencias están vacías
   const handleAdd = useCallback(
     (title) => dispatch({ type: ACTIONS.ADD, payload: { id: crypto.randomUUID(), title } }),
     []
   )
-  const handleRemove = useCallback(
-    (id) => dispatch({ type: ACTIONS.REMOVE, payload: id }),
-    []
-  )
-  const handleToggle = useCallback(
-    (id) => dispatch({ type: ACTIONS.TOGGLE, payload: id }),
-    []
-  )
+  const handleRemove = useCallback((id) => dispatch({ type: ACTIONS.REMOVE, payload: id }), [])
+  const handleToggle = useCallback((id) => dispatch({ type: ACTIONS.TOGGLE, payload: id }), [])
 
-  // Solo se recalcula si cambian las tareas
-  const done = useMemo(
-    () => state.items.filter((t) => t.completed).length,
-    [state.items]
-  )
+  const done = useMemo(() => state.items.filter((t) => t.completed).length, [state.items])
 
   return (
     <div className={`dashboard ${theme}`}>
@@ -80,7 +76,20 @@ const Dashboard = () => {
         <button onClick={() => setShowStats((s) => !s)}>
           {showStats ? 'Ocultar' : 'Mostrar'} estadísticas
         </button>
+        <button onClick={() => setShowClock((s) => !s)}>
+          {showClock ? 'Ocultar' : 'Mostrar'} reloj
+        </button>
       </div>
+
+      <input
+        className="search"
+        type="search"
+        placeholder="Buscar tarea..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {showClock && <Clock />}
 
       {showStats && (
         <p className="stats">
@@ -98,6 +107,7 @@ const Dashboard = () => {
         tasks={state.items}
         filter={state.filter}
         sort={state.sort}
+        query={debouncedSearch}
         onRemove={handleRemove}
         onToggle={handleToggle}
       />
